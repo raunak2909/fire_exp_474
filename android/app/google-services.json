@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652907939226",
+    "project_id": "fireexp474",
+    "storage_bucket": "fireexp474.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652907939226:android:2c8a6d43c2b6681578e623",
+        "android_client_info": {
+          "package_name": "com.example.fire_exp_474"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLmwFigpDTqUHKULFwz9BVpAjTWpGa1ck"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
