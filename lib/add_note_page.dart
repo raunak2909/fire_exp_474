@@ -2,6 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AddNotePage extends StatefulWidget {
+  String uid;
+
+  AddNotePage({required this.uid});
+
   @override
   State<AddNotePage> createState() => _AddNotePageState();
 }
@@ -54,22 +58,27 @@ class _AddNotePageState extends State<AddNotePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                OutlinedButton(onPressed: () async {
+                OutlinedButton(
+                  onPressed: () async {
+                    ///add_note
+                    DocumentReference<Map<String, dynamic>> noteAdded =
+                        await mFirestore!
+                            .collection("users")
+                            .doc(widget.uid)
+                            .collection("notes")
+                            .add({
+                              "title": titleController.text,
+                              "desc": descController.text,
+                              "createdAt":
+                                  DateTime.now().millisecondsSinceEpoch,
+                            });
 
-                  ///add_note
-                 DocumentReference<Map<String, dynamic>> noteAdded = await mFirestore!.collection("notes").add({
-                    "title" : titleController.text,
-                    "desc" : descController.text,
-                    "createdAt" : DateTime.now().millisecondsSinceEpoch
-                  });
-
-                 print("note added : ${noteAdded.id}");
-
-
-                }, child: Text('Save')),
-                SizedBox(
-                  width: 11,
+                    print("note added : ${noteAdded.id}");
+                    Navigator.pop(context);
+                  },
+                  child: Text('Save'),
                 ),
+                SizedBox(width: 11),
                 OutlinedButton(onPressed: () {}, child: Text('Cancel')),
               ],
             ),

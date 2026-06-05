@@ -1,23 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fire_exp_474/home_page.dart';
+import 'package:fire_exp_474/sign_up_page.dart';
 import 'package:fire_exp_474/ui_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_rounded_btn.dart';
 
-class SignUpPage extends StatelessWidget {
-  TextEditingController nameController = TextEditingController();
+class LoginPage extends StatelessWidget {
   TextEditingController emailController = TextEditingController();
-  TextEditingController mobNoController = TextEditingController();
   TextEditingController passController = TextEditingController();
-  TextEditingController confirmPassController = TextEditingController();
 
   bool isPassVisible = false;
-  bool isConfirmPassVisible = false;
-
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   bool isLoading = false;
+  bool isLogin = true;
 
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
@@ -34,23 +32,8 @@ class SignUpPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Hi, Welcome to Expenso!",
+                  "Hi, Welcome back!",
                   style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 11),
-                TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter your name";
-                    } else {
-                      return null;
-                    }
-                  },
-                  controller: nameController,
-                  decoration: mInputFieldDecoration(
-                    hintText: "Enter your name here..",
-                    labelText: "Name",
-                  ),
                 ),
                 SizedBox(height: 11),
                 TextFormField(
@@ -74,35 +57,12 @@ class SignUpPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 11),
-                TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter your Mobile no";
-                    } else if (value.length != 10) {
-                      return "Please enter a valid Mobile no";
-                    } else {
-                      return null;
-                    }
-                  },
-                  controller: mobNoController,
-                  decoration: mInputFieldDecoration(
-                    hintText: "Enter your Mobile no here..",
-                    labelText: "Mobile no",
-                  ),
-                ),
-                SizedBox(height: 11),
                 StatefulBuilder(
                   builder: (context, ss) {
                     return TextFormField(
                       validator: (value) {
-                        RegExp passRegex = RegExp(
-                          r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$',
-                        );
-
                         if (value == null || value.isEmpty) {
                           return "Please enter your password";
-                        } else if (!passRegex.hasMatch(value)) {
-                          return "Password must be 8 chars long with\nat-least 1 uppercase,\n1 lowercase,\n1 number\nand 1 special character";
                         } else {
                           return null;
                         }
@@ -123,63 +83,34 @@ class SignUpPage extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 11),
-                StatefulBuilder(
-                  builder: (context, ss) {
-                    return TextFormField(
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your password again";
-                        } else if (value != passController.text) {
-                          return "Password doesn't match";
-                        } else {
-                          return null;
-                        }
-                      },
-                      controller: confirmPassController,
-                      obscureText: !isConfirmPassVisible,
-                      decoration: mInputFieldDecoration(
-                        hintText: "Re-enter your password..",
-                        labelText: "Confirm Password",
-                        isPassField: true,
-                        isPassVisible: isConfirmPassVisible,
-                        onTap: () {
-                          isConfirmPassVisible = !isConfirmPassVisible;
-                          ss(() {});
-                        },
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 11),
                 AppRoundedBtn(
                   isLoading: isLoading,
-                  title: isLoading ? "Creating account.." : "SignUp",
+                  title: isLoading ? "Authenticating user.." : "Login",
                   onTap: () async {
                     if (formKey.currentState!.validate()) {
                       try {
-
-                        ///FirebaseFirestore.instance.collection("users").where("email", isEqualTo: emailController.text);
-
                         UserCredential userCred = await firebaseAuth
-                            .createUserWithEmailAndPassword(
+                            .signInWithEmailAndPassword(
                               email: emailController.text,
                               password: passController.text,
                             );
 
                         if (userCred.user != null) {
-                          /// user created successfully!!
-                          FirebaseFirestore.instance
-                              .collection("users")
-                              .doc(userCred.user!.uid)
-                              .set({
-                                "email": emailController.text,
-                                "mobNo": mobNoController.text,
-                                "name": nameController.text,
-                                "created_at":
-                                    DateTime.now().millisecondsSinceEpoch,
-                              });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Authenticated Successfully!!"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          /// session maintain
+                          SharedPreferences prefs = await SharedPreferences.getInstance();
+                          prefs.setString("uid", userCred.user!.uid);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomePage()),
+                          );
                         }
-                      } on FirebaseAuthException catch (e){
+                      } on FirebaseAuthException catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(e.code.toString()),
@@ -201,15 +132,18 @@ class SignUpPage extends StatelessWidget {
                 Center(
                   child: InkWell(
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignUpPage()),
+                      );
                     },
                     child: Text.rich(
                       TextSpan(
-                        text: "Already have an account? ",
+                        text: "Don't have an account? ",
                         style: TextStyle(fontSize: 12, color: Colors.black38),
                         children: [
                           TextSpan(
-                            text: "Login now..",
+                            text: "Create now..",
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
